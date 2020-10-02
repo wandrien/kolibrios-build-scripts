@@ -1,0 +1,41 @@
+#!/bin/sh
+
+KOS_TOOLCHAIN_DIR="${KOS_TOOLCHAIN_DIR:-`pwd`}"
+
+"$KOS_TOOLCHAIN_DIR/get-sources"
+"$KOS_TOOLCHAIN_DIR/prepare-toolchain"
+
+export PATH="$KOS_TOOLCHAIN_DIR/prebuilt/x86_64-linux-kos32-5.4.0/bin-fixed:$PATH"
+
+
+touch_with_path()
+{
+	mkdir -p "`dirname "$1"`" && touch "$1"
+}
+
+
+cd kolibrios || exit 1
+
+if ! [ -d .tup ] ; then
+
+	for lang in `ls data/*/lang.inc | sed -e 's|^data/||' -e 's|/lang.inc$||'` ; do
+		build_type="$lang"
+		mkdir -p "build-$lang"
+		echo "CONFIG_BUILD_TYPE=$build_type" > "build-$lang/tup.config"
+		#echo "CONFIG_NO_JWASM=full" >> "build-$lang/tup.config"
+		#echo "CONFIG_NO_GCC=full" >> "build-$lang/tup.config"
+		echo "CONFIG_NO_MSVC=full" >> "build-$lang/tup.config"
+		echo "CONFIG_NO_CMM=full" >> "build-$lang/tup.config"
+	done
+
+	tup init
+fi
+
+tup
+
+# XXX:
+touch_with_path build-rus/programs/system/docpack/trunk/SYSFUNCR.TXT
+touch_with_path data/rus/docs/COPYING.TXT
+
+tup
+

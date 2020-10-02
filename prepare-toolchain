@@ -1,0 +1,24 @@
+#!/bin/sh
+
+KOS_TOOLCHAIN_DIR="${KOS_TOOLCHAIN_DIR:-`pwd`}"
+
+if ! [ -f "$KOS_TOOLCHAIN_DIR/prebuilt/x86_64-linux-kos32-5.4.0/bin/kos32-gcc" ] ; then
+(
+		cd "$KOS_TOOLCHAIN_DIR/prebuilt"
+		7z x x86_64-linux-kos32-5.4.0.7z
+		mv win32 x86_64-linux-kos32-5.4.0
+)
+fi
+
+mkdir -p "$KOS_TOOLCHAIN_DIR/prebuilt/x86_64-linux-kos32-5.4.0/bin-fixed/"
+
+for file in "$KOS_TOOLCHAIN_DIR/prebuilt/x86_64-linux-kos32-5.4.0/bin/"* ; do
+	basename="`basename "$file"`"
+	cat > "$KOS_TOOLCHAIN_DIR/prebuilt/x86_64-linux-kos32-5.4.0/bin-fixed/$basename" <<- EOF
+		#!/bin/sh
+		export LD_LIBRARY_PATH="$KOS_TOOLCHAIN_DIR/prebuilt/x86_64-linux-missing-libs"
+		exec "$KOS_TOOLCHAIN_DIR/prebuilt/x86_64-linux-kos32-5.4.0/bin/$basename" "\$@"
+	EOF
+	chmod a+x "$KOS_TOOLCHAIN_DIR/prebuilt/x86_64-linux-kos32-5.4.0/bin-fixed/$basename"
+done
+

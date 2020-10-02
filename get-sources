@@ -1,0 +1,10 @@
+#!/bin/sh
+
+if [ -d kolibrios ] ; then
+	(
+		cd kolibrios && git pull
+	)
+else
+	git clone git://repo.or.cz/kolibrios.git
+fi
+
