@@ -1,0 +1,3 @@
+These are run-time dependencies missing from the prebuilt gcc 5.4.0 toolchain.
+The libraries are extracted from Ubuntu 14.04.
+Seems working fine on modern systems.
