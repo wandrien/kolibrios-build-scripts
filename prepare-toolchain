@@ -1,6 +1,7 @@
 #!/bin/sh
 
 KOS_TOOLCHAIN_DIR="${KOS_TOOLCHAIN_DIR:-`pwd`}"
+KOLIBRIOS_DIR="${KOLIBRIOS_DIR:-$KOS_TOOLCHAIN_DIR/kolibrios}"
 
 if ! [ -f "$KOS_TOOLCHAIN_DIR/prebuilt/x86_64-linux-kos32-5.4.0/bin/kos32-gcc" ] ; then
 (
@@ -10,15 +11,32 @@ if ! [ -f "$KOS_TOOLCHAIN_DIR/prebuilt/x86_64-linux-kos32-5.4.0/bin/kos32-gcc" ]
 )
 fi
 
-mkdir -p "$KOS_TOOLCHAIN_DIR/prebuilt/x86_64-linux-kos32-5.4.0/bin-fixed/"
+KOS_BIN_PATH="$KOS_TOOLCHAIN_DIR/prebuilt/x86_64-linux-kos32-5.4.0/bin-fixed/"
+
+mkdir -p "$KOS_BIN_PATH"
 
 for file in "$KOS_TOOLCHAIN_DIR/prebuilt/x86_64-linux-kos32-5.4.0/bin/"* ; do
 	basename="`basename "$file"`"
-	cat > "$KOS_TOOLCHAIN_DIR/prebuilt/x86_64-linux-kos32-5.4.0/bin-fixed/$basename" <<- EOF
+	cat > "$KOS_BIN_PATH/$basename" <<- EOF
 		#!/bin/sh
 		export LD_LIBRARY_PATH="$KOS_TOOLCHAIN_DIR/prebuilt/x86_64-linux-missing-libs"
 		exec "$KOS_TOOLCHAIN_DIR/prebuilt/x86_64-linux-kos32-5.4.0/bin/$basename" "\$@"
 	EOF
-	chmod a+x "$KOS_TOOLCHAIN_DIR/prebuilt/x86_64-linux-kos32-5.4.0/bin-fixed/$basename"
+	chmod a+x "$KOS_BIN_PATH/$basename"
 done
+
+export PATH="$KOS_BIN_PATH:$PATH"
+
+if ! [ -f "$KOS_BIN_PATH/kerpack" ] ; then
+	if [ -d "$KOLIBRIOS_DIR/programs/other/kpack/kerpack_linux" ] ; then
+	(
+		cd "$KOLIBRIOS_DIR/programs/other/kpack/kerpack_linux"
+		make
+		cp kpack "$KOS_BIN_PATH/kpack"
+		cp kerpack "$KOS_BIN_PATH/kerpack"
+		chmod a+x "$KOS_BIN_PATH/kpack"
+		chmod a+x "$KOS_BIN_PATH/kerpack"
+	)
+	fi
+fi
 
